@@ -10,11 +10,9 @@ enum CollectState {
   NORMAL = 0,
   LEAK = 1,
   FIRE = 2,
-  RAIN = 3,
-  IDLE0 = 4,
-  IDLE1 = 5,
-  IDLE2 = 6,
-  IDLE3 = 7
+  IDLE0 = 3,
+  IDLE1 = 4,
+  IDLE2 = 5
 };
 
 volatile CollectState currentState = IDLE0;
@@ -75,9 +73,6 @@ void toMonitor(CollectState state, String timestamp, float temperature, float hu
             break;
         case FIRE:
             Serial.println("2");
-            break;
-        case RAIN:
-            Serial.println("3");
             break;
         default:
             break;
@@ -165,27 +160,10 @@ void collect_data_task(void *pvParameters)
           break;
         case FIRE:
           if (digitalRead(BOOT_BUTTON_PIN) == LOW && (millis() - lastDebounceTime) > debounceDelay) {
-            currentState = IDLE3;
-            lastDebounceTime = millis();
-          }
-          strip.setPixelColor(0, strip.Color(255, 0, 0));  //Hiện màu đỏ khi FIRE
-          strip.show();
-          toMonitor(currentState, timestamp, temperature, humidity, smoke);
-          break;
-        case IDLE3:
-          if (digitalRead(BOOT_BUTTON_PIN) == LOW) {
-            currentState = RAIN;
-            lastDebounceTime = millis();
-          }
-          strip.setPixelColor(0, strip.Color(255, 255, 255));  //Hiện màu trắng khi IDLE
-          strip.show();
-          break;
-        case RAIN:
-          if (digitalRead(BOOT_BUTTON_PIN) == LOW && (millis() - lastDebounceTime) > debounceDelay) {
             currentState = IDLE0;
             lastDebounceTime = millis();
           }
-          strip.setPixelColor(0, strip.Color(0, 0, 255));  //Hiện màu xanh dương khi RAIN
+          strip.setPixelColor(0, strip.Color(255, 0, 0));  //Hiện màu đỏ khi FIRE
           strip.show();
           toMonitor(currentState, timestamp, temperature, humidity, smoke);
           break;
