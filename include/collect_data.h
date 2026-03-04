@@ -6,6 +6,7 @@
 #include "global.h"
 #include <Wire.h>
 #include <neo_blinky.h>
+#include <temp_humi_monitor.h>
 
 void collect_data_task(void *pvParameters);
 

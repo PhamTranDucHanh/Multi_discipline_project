@@ -36,6 +36,7 @@ void setup()
 check_info_File(0);
   Serial.begin(115200);
   xTaskCreate(collect_data_task, "Collect Data Task", 4096, NULL, 2, NULL);
+  xTaskCreate(led_blinky, "Task LED Blink", 2048, NULL, 2, NULL);   //Heartbeat
 #endif
 }
 
