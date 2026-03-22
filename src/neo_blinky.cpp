@@ -161,7 +161,7 @@ void neo_blinky(void *pvParameters) {
             }
             case STATE_LIGHT: {
                 int r = 0, g = 0, b = 0;
-                float light_percent = 100 - (sensorData.light_value / 4095.0 * 100.0);
+                float light_percent = 100 - (sensorData.smoke / 4095.0 * 100.0);
                 if (light_percent <= config.light_low_max) {
                     r = config.light_low_r; g = config.light_low_g; b = config.light_low_b;
                 } else if (light_percent <= config.light_mid_max) {

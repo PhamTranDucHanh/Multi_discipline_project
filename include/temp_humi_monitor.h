@@ -9,6 +9,8 @@
 #include <Wire.h>
 #include <U8g2lib.h>
 
+#include "random_forest_model.h"
+
 void temp_humi_monitor(void *pvParameters);
 void draw();
 #endif

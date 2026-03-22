@@ -10,11 +10,15 @@ void Webserver_sendata(String data)
     if (ws.count() > 0)
     {
         ws.textAll(data); // Gửi đến tất cả client đang kết nối
+#ifdef PRINT_WEBSOCKET_STATUS
         Serial.println("Đã gửi dữ liệu qua WebSocket: " + data);
+#endif
     }
     else
     {
+#ifdef PRINT_WEBSOCKET_STATUS
         Serial.println("Không có client WebSocket nào đang kết nối!");
+#endif
     }
 }
 
@@ -22,11 +26,15 @@ void onEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType 
 {
     if (type == WS_EVT_CONNECT)
     {
+#ifdef PRINT_WEBSOCKET_STATUS
         Serial.printf("WebSocket client #%u connected from %s\n", client->id(), client->remoteIP().toString().c_str());
+#endif
     }
     else if (type == WS_EVT_DISCONNECT)
     {
+#ifdef PRINT_WEBSOCKET_STATUS
         Serial.printf("WebSocket client #%u disconnected\n", client->id());
+#endif    
     }
     else if (type == WS_EVT_DATA)
     {

@@ -4,12 +4,12 @@ DHT20 dht20;
 LiquidCrystal_I2C lcd(0x27,16,2);
 
 U8G2_SH1106_128X64_NONAME_F_HW_I2C u8g2(U8G2_R0, /* reset=*/ U8X8_PIN_NONE);
-#define LIGHT_ANALOG_PIN 1 //A0
+#define SMOKE_ANALOG_PIN 1 //A0
 
 // Instance to hold sensor data
 SensorData sensorData;
-// Determine light level
-String lightLevel;
+
+Eloquent::ML::Port::RandomForest model;
 
 void temp_humi_monitor(void *pvParameters){
 
@@ -29,7 +29,7 @@ void temp_humi_monitor(void *pvParameters){
         // Reading humidity
         float humidity = dht20.getHumidity();
         // Read light sensor value
-        int lightValue = analogRead(LIGHT_ANALOG_PIN);
+        float smokeValue = analogRead(SMOKE_ANALOG_PIN);
 
         // Check if any reads failed and exit early
         if (isnan(temperature) || isnan(humidity)) {
@@ -38,14 +38,37 @@ void temp_humi_monitor(void *pvParameters){
             //return;
         }
 
-        if(lightValue <= 1200) lightLevel = "Bright";
-        else if(lightValue <= 3200) lightLevel = "Medium";
-        else lightLevel = "Dark";
+        static float temp_prev = 0, gas_prev = 0;
+
+        float temp_diff = temperature - temp_prev;
+        float gas_diff = smokeValue - gas_prev;
+
+        float features[5] = {temperature, humidity, smokeValue, temp_diff, gas_diff};
+        int result = model.predict(features);
+
+        // Cập nhật giá trị trước cho lần sau
+        temp_prev = temperature;
+        gas_prev = smokeValue;
+
+        // Xử lý kết quả
+        if (result == 0) { 
+            // Normal
+            Serial.println("Normal");
+         }
+        else if (result == 1) { 
+            /* Gas Leak */ 
+            Serial.println("Gas Leak");
+        }
+        else if (result == 2) { 
+            /* Burning */ 
+            Serial.println("Burning");
+        }
 
         // Đóng gói dữ liệu vào struct và gửi vào queue
         sensorData.temperature = temperature;
         sensorData.humidity = humidity;
-        sensorData.light_value = lightValue;
+        sensorData.smoke = smokeValue;
+        sensorData.status = result; // 0: normal, 1: leak, 2: fire
         if (xQueueSend(xQueueSensorDataNeoPixel, &sensorData, 0) != pdPASS) {
 #ifdef PRINT_QUEUE_STATUS
             Serial.println("Queue Sensor Data NeoPixel full");
@@ -59,10 +82,8 @@ void temp_humi_monitor(void *pvParameters){
         
         // Serial output
 #ifdef PRINT_SENSOR_DATA
-        Serial.print("Light analog: ");
-        Serial.print(lightValue);
-        Serial.print(" -> ");
-        Serial.println(lightLevel);
+        Serial.print("Smoke analog: ");
+        Serial.print(smokeValue);
 
         Serial.print("Humidity: ");
         Serial.print(humidity);
@@ -85,33 +106,42 @@ void temp_humi_monitor(void *pvParameters){
         u8g2.clearBuffer();					// clear the internal memory
         draw();
         u8g2.sendBuffer();					// transfer internal memory to the display
-        vTaskDelay(1000);
+        // vTaskDelay(1000);
         
         // ==================================================
         StaticJsonDocument<128> doc;
         doc["type"] = "sensor_data";
         doc["temperature"] = temperature;
         doc["humidity"] = humidity;
-        doc["light_value"] = lightValue;  // Gửi giá trị analog (0-4095)
+        doc["smokeValue"] = smokeValue;  // Gửi giá trị analog (0-4095)
+        doc["status"] = result; // 0: normal, 1: leak, 2: fire
 
         String jsonString;
         serializeJson(doc, jsonString);
         
         Webserver_sendata(jsonString);
         // ==================================================
-        vTaskDelay(3000 / portTICK_PERIOD_MS); // Đọc mỗi 3 giây
+        vTaskDelay(1000 / portTICK_PERIOD_MS); // Đọc mỗi 1 giây
         
     }
 }
-void draw(){
-    u8g2.setFont(u8g2_font_ncenB08_tr);       // choose a suitable font
-    char temp_str[20];
-    sprintf(temp_str, "Temp: %.2f C", sensorData.temperature);
-    u8g2.drawStr(0,10,temp_str);
-    char humi_str[20];
-    sprintf(humi_str, "Humi: %.2f %%", sensorData.humidity);
-    u8g2.drawStr(0,30,humi_str);
-    char light_str[20];
-    sprintf(light_str, "Light: %s", lightLevel.c_str());
-    u8g2.drawStr(0,50,light_str);
+void draw() {
+    u8g2.setFont(u8g2_font_ncenB08_tr); // chọn font phù hợp
+    char line1[32], line2[32], status_str[20];
+    // Dòng 1: Temp | Humi
+    sprintf(line1, "T:%.1fC  H:%.1f%%", sensorData.temperature, sensorData.humidity);
+    u8g2.drawStr(0, 14, line1);
+    // Dòng 2: Gas
+    sprintf(line2, "Gas: %d", (int)sensorData.smoke);
+    u8g2.drawStr(0, 32, line2);
+    // Dòng 3: Status
+    if (sensorData.status == 0)
+        strcpy(status_str, "NORMAL");
+    else if (sensorData.status == 1)
+        strcpy(status_str, "GAS LEAK");
+    else if (sensorData.status == 2)
+        strcpy(status_str, "BURN");
+    else
+        strcpy(status_str, "UNKNOWN");
+    u8g2.drawStr(0, 50, status_str);
 }

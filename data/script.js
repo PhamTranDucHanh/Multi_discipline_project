@@ -1,3 +1,64 @@
+// ==================== HOME GAUGES ====================
+function initGauges() {
+    // Gauge trạng thái cảnh báo
+    window.gaugeStatus = new JustGage({
+        id: "gauge_status",
+        value: 0,
+        min: 0,
+        max: 2,
+        donut: true,
+        pointer: false,
+        gaugeWidthScale: 0.25,
+        gaugeColor: "transparent",
+        levelColorsGradient: false,
+        levelColors: ["#4CAF50", "#FFC107", "#F44336"],
+        customSectors: [
+            {color: "#4CAF50", lo: 0, hi: 0},
+            {color: "#FFC107", lo: 1, hi: 1},
+            {color: "#F44336", lo: 2, hi: 2}
+        ],
+        label: ""
+    });
+
+    window.gaugeTemp = new JustGage({
+        id: "gauge_temp",
+        value: 0, // Giá trị ban đầu
+        min: -10,
+        max: 50,
+        donut: true,
+        pointer: false,
+        gaugeWidthScale: 0.25,
+        gaugeColor: "transparent",
+        levelColorsGradient: true,
+        levelColors: ["#00BCD4", "#4CAF50", "#FFC107", "#F44336"]
+    });
+
+    window.gaugeHumi = new JustGage({
+        id: "gauge_humi",
+        value: 0, // Giá trị ban đầu
+        min: 0,
+        max: 100,
+        donut: true,
+        pointer: false,
+        gaugeWidthScale: 0.25,
+        gaugeColor: "transparent",
+        levelColorsGradient: true,
+        levelColors: ["#42A5F5", "#00BCD4", "#0288D1"]
+    });
+
+    window.gaugeGas = new JustGage({
+        id: "gauge_gas",
+        value: 0,
+        min: 0,
+        max: 4095, // Hiển thị giá trị analog khí gas
+        donut: true,
+        pointer: false,
+        gaugeWidthScale: 0.25,
+        gaugeColor: "transparent",
+        levelColorsGradient: true,
+        levelColors: ["#292727ff", "#FFC107", "#f4d7d7ff"] // Dark, Medium, Bright
+    });
+}
 // Nếu muốn lấy giá trị hiệu ứng khi gửi dữ liệu:
 // const effect = document.getElementById('customEffect').value;
 // ==================== NEOPIXEL MODE UI ====================
@@ -130,32 +191,46 @@ function onMessage(event) {
     console.log("Nhận:", event.data);
     try {
         var data = JSON.parse(event.data);
-        // Có thể thêm xử lý riêng nếu cần (ví dụ cập nhật trạng thái)
         // Xử lý cập nhật trạng thái relay từ ESP32
         if(data.type === "device") { 
             refreshRelayUI(data.value);
         }
-
-        // ==================================================
-        // Kiểm tra xem có phải dữ liệu cảm biến không
+        // ================== Cập nhật gauge trạng thái ==================
         if (data.type === "sensor_data") {
-            // Cập nhật đồng hồ đo với giá trị thật
-            // (Kiểm tra xem các đồng hồ đã được khởi tạo chưa)
-            if (window.gaugeTemp) {
+            // Cập nhật gauge trạng thái nếu có trường status
+                            if (window.gaugeStatus && typeof data.status !== 'undefined') {
+                            let label = "";
+                            let color = "#4CAF50";
+                            if (data.status == 0) { label = "NORMAL"; color = "#4CAF50"; }
+                            else if (data.status == 1) { label = "GAS LEAK"; color = "#FFC107"; }
+                            else if (data.status == 2) { label = "BURN"; color = "#F44336"; }
+                            else { label = "UNKNOWN"; color = "#888"; }
+                            window.gaugeStatus.refresh(data.status);
+                            // Xóa label cũ nếu có (tránh bị ghi đè bởi JustGage)
+                            let oldLabel = document.getElementById('gauge_status_label');
+                            if (oldLabel) oldLabel.remove();
+                            // Thêm label mới
+                            let labelDiv = document.createElement('div');
+                            labelDiv.id = 'gauge_status_label';
+                            labelDiv.style.textAlign = 'center';
+                            labelDiv.style.fontWeight = 'bold';
+                            labelDiv.style.fontSize = '1.2em';
+                            labelDiv.style.marginTop = '8px';
+                            labelDiv.innerText = label;
+                            labelDiv.style.color = color;
+                            document.getElementById('gauge_status').appendChild(labelDiv);
+                            }
+            // Cập nhật các gauge còn lại
+            if (window.gaugeTemp && typeof data.temperature !== 'undefined') {
                 window.gaugeTemp.refresh(data.temperature);
             }
-            if (window.gaugeHumi) {
+            if (window.gaugeHumi && typeof data.humidity !== 'undefined') {
                 window.gaugeHumi.refresh(data.humidity);
             }
-            // Cập nhật đồng hồ đo ánh sáng
-            if (window.gaugeLight && data.hasOwnProperty('light_value')) {
-                // Giá trị analog từ 0-4095. Cảm biến cho giá trị thấp khi sáng, cao khi tối.
-                // -> Đảo ngược và chuyển sang %: (1 - (value/4095)) * 100
-                const lightPercent = 100 - (data.light_value / 4095 * 100);
-                window.gaugeLight.refresh(lightPercent);
+            if (window.gaugeGas && typeof data.smokeValue !== 'undefined') {
+                window.gaugeGas.refresh(data.smokeValue);
             }
         }
-        // ==================================================
     } catch (e) {
         console.warn("Không phải JSON hợp lệ:", event.data);
     }
@@ -204,11 +279,11 @@ function initGauges() {
         levelColors: ["#42A5F5", "#00BCD4", "#0288D1"]
     });
 
-    window.gaugeLight = new JustGage({
-        id: "gauge_light",
+    window.gaugeGas = new JustGage({
+        id: "gauge_gas",
         value: 0,
         min: 0,
-        max: 100, // Hiển thị theo %
+        max: 4095, // Hiển thị giá trị analog khí gas
         donut: true,
         pointer: false,
         gaugeWidthScale: 0.25,

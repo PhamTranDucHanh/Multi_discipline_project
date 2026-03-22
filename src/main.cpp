@@ -12,7 +12,7 @@
 #include "task1_human_detection.h"
 #include "task_optimize.h"
 #include "collect_data.h"
-#define COLLECT_DATA_ONLY
+//#define COLLECT_DATA_ONLY
 
 void setup()
 {

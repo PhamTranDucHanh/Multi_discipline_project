@@ -9,10 +9,11 @@
 #include "task_webserver.h"
 #include <Wire.h>
 
-#define PRINT_QUEUE_STATUS
-#define PRINT_SENSOR_DATA
-#define PRINT_COREIOT_PUBLISH
-// #define PRINT_HUMAN_DETECTION
+//#define PRINT_QUEUE_STATUS
+//#define PRINT_SENSOR_DATA
+//#define PRINT_COREIOT_PUBLISH
+//#define PRINT_HUMAN_DETECTION
+//#define PRINT_WEBSOCKET_STATUS
 
 extern volatile bool human_detected;
 #define RELAY1_PIN 10
@@ -23,7 +24,8 @@ extern volatile bool human_detected;
 typedef struct {
 	float temperature;
 	float humidity;
-	float light_value;
+	int smoke;
+	int status; // 0: normal, 1: leak, 2: fire
 } SensorData;
 extern QueueHandle_t xQueueSensorDataNeoPixel;
 extern QueueHandle_t xQueueSensorDataCoreIOT;

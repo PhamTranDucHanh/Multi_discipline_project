@@ -41,22 +41,24 @@
         <p>Giám sát nhiệt độ và độ ẩm theo thời gian thực</p>
       </header>
 
-<div class="gauges-container">
-        <div class="gauge-card">
-          <h2><i class="fa-solid fa-temperature-half"></i> Nhiệt độ (°C)</h2>
-          <div id="gauge_temp"></div>
+        <div class="gauges-container">
+          <div class="gauge-card">
+            <h2><i class="fa-solid fa-shield"></i> Trạng thái cảnh báo</h2>
+            <div id="gauge_status" style="height:110px;"></div>
+          </div>
+          <div class="gauge-card">
+            <h2><i class="fa-solid fa-temperature-half"></i> Nhiệt độ (°C)</h2>
+            <div id="gauge_temp"></div>
+          </div>
+          <div class="gauge-card">
+            <h2><i class="fa-solid fa-droplet"></i> Độ ẩm (%)</h2>
+            <div id="gauge_humi"></div>
+          </div>
+          <div class="gauge-card">
+            <h2><i class="fa-solid fa-wind"></i> Nồng độ khí độc hại (Analog)</h2>
+            <div id="gauge_gas"></div>
+          </div>
         </div>
-
-        <div class="gauge-card">
-          <h2><i class="fa-solid fa-droplet"></i> Độ ẩm (%)</h2>
-          <div id="gauge_humi"></div>
-        </div>
-
-        <div class="gauge-card">
-          <h2><i class="fa-solid fa-sun"></i> Cường độ sáng (%)</h2>
-          <div id="gauge_light"></div>
-        </div>
-      </div>
     </div>
 
     <!-- NEOPIXEL -->
