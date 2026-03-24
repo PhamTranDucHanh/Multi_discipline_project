@@ -159,12 +159,12 @@ void coreiot_task(void *pvParameters){
       Serial.println("Queue Sensor Data CoreIOT empty");
 #endif
     }
-    float lightPercent = 100 - (sensorData.smoke / 4095 * 100);
-    int roomStatus = human_detected ? 1 : 0;
+    // float lightPercent = 100 - (sensorData.smoke / 4095 * 100);
+    // int roomStatus = human_detected ? 1 : 0;
     String payload = "{\"temperature\":" + String(sensorData.temperature) +
                      ",\"humidity\":" + String(sensorData.humidity) +
-                     ",\"illuminance\":" + String(sensorData.smoke) +
-                     ",\"room_status\":" + String(roomStatus) + "}";
+                     ",\"smoke\":" + String(sensorData.smoke) +
+                     ",\"status\":" + String(sensorData.status) + "}";
 
     client.publish("v1/devices/me/telemetry", payload.c_str());
 #ifdef PRINT_COREIOT_PUBLISH

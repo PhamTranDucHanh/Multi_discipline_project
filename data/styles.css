@@ -225,7 +225,8 @@ body {
   transition   : transform 0.3s ease;
 }
 
-#gauge_light,
+#gauge_status,
+#gauge_gas,
 #gauge_temp,
 #gauge_humi {
   width : 260px;

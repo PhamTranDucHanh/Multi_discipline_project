@@ -114,7 +114,7 @@ void temp_humi_monitor(void *pvParameters){
         doc["temperature"] = temperature;
         doc["humidity"] = humidity;
         doc["smokeValue"] = smokeValue;  // Gửi giá trị analog (0-4095)
-        doc["status"] = result; // 0: normal, 1: leak, 2: fire
+        doc["result"] = result; // 0: normal, 1: leak, 2: fire
 
         String jsonString;
         serializeJson(doc, jsonString);
