@@ -8,6 +8,7 @@
 #include <ArduinoJson.h>
 #include "task_webserver.h"
 #include <Wire.h>
+#include "task_telegram.h"
 
 //#define PRINT_QUEUE_STATUS
 //#define PRINT_SENSOR_DATA
@@ -36,10 +37,15 @@ extern String WIFI_PASS;
 extern String CORE_IOT_TOKEN;
 extern String CORE_IOT_SERVER;
 extern String CORE_IOT_PORT;
+extern String TELEGRAM_BOT_TOKEN;
+extern String TELEGRAM_CHAT_ID;
+
 extern SemaphoreHandle_t xBinarySemaphoreInternet;
 extern SemaphoreHandle_t xBinarySemaphoreNeoPixel;
 extern SemaphoreHandle_t xBinarySemaphoreNormalMode;
 extern SemaphoreHandle_t xBinarySemaphoreSavePower;
+extern SemaphoreHandle_t xBinarySemaphoreMsgGas;
+extern SemaphoreHandle_t xBinarySemaphoreMsgBurn;
 
 // Queues for NeoPixel Config
 typedef struct {

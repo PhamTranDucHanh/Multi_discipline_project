@@ -12,6 +12,7 @@
 #include "task1_human_detection.h"
 #include "task_optimize.h"
 #include "collect_data.h"
+#include "task_telegram.h"
 //#define COLLECT_DATA_ONLY
 
 void setup()
@@ -29,8 +30,9 @@ void setup()
   xTaskCreate(temp_humi_monitor, "Task TEMP HUMI Monitor", 4096, NULL, 2, NULL);
   xTaskCreate(coreiot_task, "CoreIOT Task" ,4096  ,NULL  ,2 , NULL);
   // xTaskCreate(Task_Toogle_BOOT, "Task_Toogle_BOOT", 4096, NULL, 2, NULL);
-  xTaskCreate(human_detection_task1, "Task Human Detection", 4096, NULL, 2, NULL);
-  xTaskCreate(task_power_optimize, "Task Power Optimize", 2048, NULL, 2, NULL);
+  // xTaskCreate(human_detection_task1, "Task Human Detection", 4096, NULL, 2, NULL);
+  // xTaskCreate(task_power_optimize, "Task Power Optimize", 2048, NULL, 2, NULL);
+  xTaskCreate(telegram_task, "Telegram Task", 4096, NULL, 2, NULL);
 #endif
 #ifdef COLLECT_DATA_ONLY
 check_info_File(0);

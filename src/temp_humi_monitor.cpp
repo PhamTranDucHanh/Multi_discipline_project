@@ -50,20 +50,6 @@ void temp_humi_monitor(void *pvParameters){
         temp_prev = temperature;
         gas_prev = smokeValue;
 
-        // Xử lý kết quả
-        if (result == 0) { 
-            // Normal
-            Serial.println("Normal");
-         }
-        else if (result == 1) { 
-            /* Gas Leak */ 
-            Serial.println("Gas Leak");
-        }
-        else if (result == 2) { 
-            /* Burning */ 
-            Serial.println("Burning");
-        }
-
         // Đóng gói dữ liệu vào struct và gửi vào queue
         sensorData.temperature = temperature;
         sensorData.humidity = humidity;
@@ -80,6 +66,12 @@ void temp_humi_monitor(void *pvParameters){
 #endif
         }
         
+        if (sensorData.status == 1) { // Gas Leak
+            xSemaphoreGive(xBinarySemaphoreMsgGas);
+        }
+        if (sensorData.status == 2) { // Burning
+            xSemaphoreGive(xBinarySemaphoreMsgBurn);
+        }
         // Serial output
 #ifdef PRINT_SENSOR_DATA
         Serial.print("Smoke analog: ");

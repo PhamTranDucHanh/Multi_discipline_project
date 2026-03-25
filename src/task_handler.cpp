@@ -61,6 +61,8 @@ void handleWebSocketMessage(String message)
         String CORE_IOT_TOKEN = doc["value"]["token"].as<String>();
         String CORE_IOT_SERVER = doc["value"]["server"].as<String>();
         String CORE_IOT_PORT = doc["value"]["port"].as<String>();
+        String TELEGRAM_BOT_TOKEN = doc["value"]["telegram_bot_token"].as<String>();
+        String TELEGRAM_CHAT_ID = doc["value"]["telegram_chat_id"].as<String>();
 
         Serial.println("Nhận cấu hình từ WebSocket:");
         Serial.println("SSID: " + WIFI_SSID);
@@ -68,9 +70,11 @@ void handleWebSocketMessage(String message)
         Serial.println("TOKEN: " + CORE_IOT_TOKEN);
         Serial.println("SERVER: " + CORE_IOT_SERVER);
         Serial.println("PORT: " + CORE_IOT_PORT);
+        Serial.println("TELEGRAM_BOT_TOKEN: " + TELEGRAM_BOT_TOKEN);
+        Serial.println("TELEGRAM_CHAT_ID: " + TELEGRAM_CHAT_ID);
 
         // Gọi hàm lưu cấu hình
-        Save_info_File(WIFI_SSID, WIFI_PASS, CORE_IOT_TOKEN, CORE_IOT_SERVER, CORE_IOT_PORT);
+        Save_info_File(WIFI_SSID, WIFI_PASS, CORE_IOT_TOKEN, CORE_IOT_SERVER, CORE_IOT_PORT, TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID);
 
         // Phản hồi lại client (tùy chọn)
         String msg = "{\"status\":\"ok\",\"page\":\"setting_saved\"}";

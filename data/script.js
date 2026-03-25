@@ -350,6 +350,8 @@ document.getElementById("settingsForm").addEventListener("submit", function (e) 
     const token = document.getElementById("token").value.trim();
     const server = document.getElementById("server").value.trim();
     const port = document.getElementById("port").value.trim();
+    const telegram_bot_token = document.getElementById("telegramBotToken").value.trim();
+    const telegram_chat_id = document.getElementById("telegramChatId").value.trim();
 
     const settingsJSON = JSON.stringify({
         page: "setting",
@@ -358,7 +360,9 @@ document.getElementById("settingsForm").addEventListener("submit", function (e) 
             password: password,
             token: token,
             server: server,
-            port: port
+            port: port,
+            telegram_bot_token: telegram_bot_token,
+            telegram_chat_id: telegram_chat_id
         }
     });
 

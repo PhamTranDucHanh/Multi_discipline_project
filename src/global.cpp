@@ -10,11 +10,15 @@ String WIFI_PASS;
 String CORE_IOT_TOKEN;
 String CORE_IOT_SERVER;
 String CORE_IOT_PORT;
+String TELEGRAM_BOT_TOKEN;
+String TELEGRAM_CHAT_ID;
 
 SemaphoreHandle_t xBinarySemaphoreInternet = xSemaphoreCreateBinary();
 SemaphoreHandle_t xBinarySemaphoreNeoPixel = xSemaphoreCreateBinary();
 SemaphoreHandle_t xBinarySemaphoreNormalMode = xSemaphoreCreateBinary();
 SemaphoreHandle_t xBinarySemaphoreSavePower = xSemaphoreCreateBinary();
+SemaphoreHandle_t xBinarySemaphoreMsgGas = xSemaphoreCreateBinary();
+SemaphoreHandle_t xBinarySemaphoreMsgBurn = xSemaphoreCreateBinary();
 
 
 QueueHandle_t xQueueNeoPixelConfig = xQueueCreate(5, sizeof(NeoPixelConfigStruct));
