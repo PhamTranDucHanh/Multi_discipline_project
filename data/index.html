@@ -35,9 +35,19 @@
 
     <!-- TRANG CHỦ -->
     <div id="home" class="section fade-in">
-      <header>
-        <h1>Bảng điều khiển môi trường</h1>
-        <p>Giám sát nhiệt độ và độ ẩm theo thời gian thực</p>
+      <header class="dash-header">
+        <div class="header-left">
+          <h1>Bảng điều khiển môi trường</h1>
+          <p>Giám sát chỉ số và cảnh báo AI thời gian thực</p>
+        </div>
+        <div class="header-right">
+          <div class="current-time">
+            <i class="fa-regular fa-clock"></i> <span id="clock">--:--:--</span>
+          </div>
+          <div class="live-badge offline" id="connBadge">
+            <span class="pulse-dot"></span> <span id="connText">OFFLINE</span>
+          </div>
+        </div>
       </header>
 
       <div class="dashboard-header-cards">
@@ -48,46 +58,46 @@
           </div>
         </div>
         <div class="header-card">
-          <div class="card-title"><i class="fa-solid fa-temperature-half" style="color: #f59e0b;"></i> Nhiệt độ</div>
+          <div class="card-title"><i class="fa-solid fa-temperature-half" style="color: #f59e0b;"></i> Nhiệt độ (°C)</div>
           <div class="card-minmax">
             <div class="min-box">
-              <div class="min-label">THẤP NHẤT</div>
-              <div class="val-wrap"><span id="min_temp">--</span><small>°C</small></div>
+              <div class="min-label">Thấp Nhất</div>
+              <div class="val-wrap"><span id="min_temp">--</span></div>
             </div>
             <div class="divider"></div>
             <div class="max-box">
-              <div class="max-label">CAO NHẤT</div>
-              <div class="val-wrap"><span id="max_temp">--</span><small>°C</small></div>
+              <div class="max-label">Cao Nhất</div>
+              <div class="val-wrap"><span id="max_temp">--</span></div>
             </div>
           </div>
         </div>
         
         <div class="header-card">
-          <div class="card-title"><i class="fa-solid fa-droplet" style="color: #3b82f6;"></i> Độ ẩm</div>
+          <div class="card-title"><i class="fa-solid fa-droplet" style="color: #3b82f6;"></i> Độ ẩm (%)</div>
           <div class="card-minmax">
             <div class="min-box">
-              <div class="min-label">THẤP NHẤT</div>
-              <div class="val-wrap"><span id="min_humi">--</span><small>%</small></div>
+              <div class="min-label">Thấp Nhất</div>
+              <div class="val-wrap"><span id="min_humi">--</span></div>
             </div>
             <div class="divider"></div>
             <div class="max-box">
-              <div class="max-label">CAO NHẤT</div>
-              <div class="val-wrap"><span id="max_humi">--</span><small>%</small></div>
+              <div class="max-label">Cao Nhất</div>
+              <div class="val-wrap"><span id="max_humi">--</span></div>
             </div>
           </div>
         </div>
         
         <div class="header-card">
-          <div class="card-title"><i class="fa-solid fa-wind" style="color: #10b981;"></i> Khí độc</div>
+          <div class="card-title"><i class="fa-solid fa-wind" style="color: #10b981;"></i> Nồng độ khí độc (Analog)</div>
           <div class="card-minmax">
             <div class="min-box">
-              <div class="min-label">THẤP NHẤT</div>
-              <div class="val-wrap"><span id="min_gas">--</span><small>ppm</small></div>
+              <div class="min-label">Thấp Nhất</div>
+              <div class="val-wrap"><span id="min_gas">--</span></div>
             </div>
             <div class="divider"></div>
             <div class="max-box">
-              <div class="max-label">CAO NHẤT</div>
-              <div class="val-wrap"><span id="max_gas">--</span><small>ppm</small></div>
+              <div class="max-label">Cao Nhất</div>
+              <div class="val-wrap"><span id="max_gas">--</span></div>
             </div>
           </div>
         </div>

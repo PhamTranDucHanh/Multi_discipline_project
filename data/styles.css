@@ -156,48 +156,70 @@ body {
 /* Sidebar */
 .sidebar {
   width           : 260px;
-  background-color: #2294F2;
-  color           : white;
+  background-color: #ffffff;
   display         : flex;
   flex-direction  : column;
   align-items     : center;
-  box-shadow      : 3px 0 10px rgba(0, 0, 0, 0.2);
+  border-right    : 1px solid #eef2f6; 
+  z-index         : 10;
 }
 
 .logo-container {
   width          : 100%;
-  background     : white;
+  background     : #ffffff;
   display        : flex;
   justify-content: center;
   align-items    : center;
-  padding        : 20px 0;
-  border-bottom  : 2px solid rgba(0, 0, 0, 0.1);
+  padding        : 30px 0 20px 0; 
+  border-bottom  : 1.5px solid rgba(34, 148, 242, 0.15); 
+  margin-bottom  : 20px;
 }
 
 .logo-img {
-  width : 80%;
+  width : 60%;
   height: auto;
 }
 
 .nav-item {
-  width        : 90%;
-  padding      : 16px 20px;
-  margin       : 8px 0;
-  font-size    : 18px;
+  width        : 85%;
+  padding      : 14px 20px;
+  margin       : 4px 0;
+  font-size    : 16px;
   font-weight  : 600;
   cursor       : pointer;
-  border-radius: 10px;
-  color        : #ecf6ff;
-  transition   : all 0.3s ease;
+  color        : #64748b;
+  transition   : background-color 0.2s ease, color 0.2s ease;
   display      : flex;
   align-items  : center;
-  gap          : 12px;
+  gap          : 15px;
+  position     : relative;
+}
+
+.nav-item:hover {
+  background: #eff6ff;
+  color: #2294F2;
 }
 
 .nav-item.active {
-  background: #fff;
+  background: #e0f0ff;
   color     : #2294F2;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+}
+
+.nav-item.active::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 15%;
+  height: 70%;
+  width: 4px;
+  background-color: #2294F2; 
+  border-radius: 4px;
+}
+
+.nav-item i {
+  font-size: 18px; 
+  width: 24px; 
+  text-align: center;
 }
 
 /* Main Content */
@@ -207,7 +229,90 @@ body {
   overflow-y: auto;
 }
 
-/* ==================== BỐ CỤC TRANG CHỦ THEO ẢNH ==================== */
+/* ==================== BỐ CỤC TRANG CHỦ ==================== */
+.dash-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 25px;
+  padding-bottom: 15px;
+  border-bottom: 2px solid #e2e8f0; /* Vạch ngăn cách nhạt */
+}
+
+.header-left h1 {
+  font-size: 26px;
+  color: #111827;
+  margin: 0 0 6px 0;
+}
+
+.header-left p {
+  font-size: 15px;
+  color: #6b7280;
+  margin: 0;
+  font-weight: 500;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+/* Đồng hồ thời gian thực */
+.current-time {
+  font-size: 15px;
+  font-weight: 600;
+  color: #4b5563;
+  background: #f8fafc;
+  padding: 8px 16px;
+  border-radius: 12px;
+  border: 1px solid #cbd5e1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Nhãn LIVE nhấp nháy */
+.live-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #dcfce7;
+  color: #10b981;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-weight: 700;
+  font-size: 14px;
+  border: 1px solid #bbf7d0;
+  box-shadow: 0 2px 10px rgba(16, 185, 129, 0.1);
+}
+
+.pulse-dot {
+  width: 10px;
+  height: 10px;
+  background-color: #10b981;
+  border-radius: 50%;
+  animation: pulse-green 1.5s infinite;
+}
+
+@keyframes pulse-green {
+  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+  70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+}
+
+.live-badge.offline {
+  background: #f1f5f9;
+  color: #64748b;
+  border-color: #e2e8f0;
+  box-shadow: none;
+}
+
+.live-badge.offline .pulse-dot {
+  background-color: #94a3b8;
+  animation: none; /* Tắt hiệu ứng nhấp nháy */
+}
+
 /* Header Cards (Hàng 1) */
 .dashboard-header-cards {
   display: flex;

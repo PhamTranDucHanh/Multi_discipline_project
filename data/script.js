@@ -104,6 +104,7 @@ function onLoad(event) {
 
 function onOpen(event) {
     console.log('Connection opened');
+    updateConnectionStatus(true);
 }
 
 function onClose(event) {
@@ -129,9 +130,35 @@ function Send_Data(data) {
     }
 }
 
+let connectionTimeout;
+
+function updateConnectionStatus(isOnline) {
+    const badge = document.getElementById('connBadge');
+    const textNode = document.getElementById('connText');
+    if(badge && textNode) {
+        if(isOnline) {
+            badge.classList.remove('offline');
+            textNode.innerText = 'LIVE';
+        } else {
+            badge.classList.add('offline');
+            textNode.innerText = 'OFFLINE';
+        }
+    }
+}
+
+function resetConnectionTimer() {
+    updateConnectionStatus(true); // Đang có data -> Online
+    clearTimeout(connectionTimeout); // Xóa bộ đếm cũ
+    // ESP32 gửi 1 giây/lần. Nếu sau 3 giây không có tín hiệu -> Báo Offline
+    connectionTimeout = setTimeout(() => {
+        updateConnectionStatus(false);
+    }, 3000); 
+}
+
 function onMessage(event) {
     console.log("Nhận:", event.data);
     try {
+        resetConnectionTimer();
         var data = JSON.parse(event.data);
         if(data.type === "device") { refreshRelayUI(data.value); }
         
@@ -203,7 +230,7 @@ function onMessage(event) {
 
 // ==================== KHỞI TẠO ĐỒ THỊ CHART.JS ====================
 let chartTemp, chartHumi, chartGas;
-const maxDataPoints = 30; // Giữ 30 điểm trên đồ thị
+const maxDataPoints = 50; // Giữ 50 điểm trên đồ thị
 
 function initCharts() {
     const commonOptions = {
@@ -264,7 +291,7 @@ function updateChart(chart, newData) {
     chart.data.labels.push(timeNow);
     chart.data.datasets[0].data.push(newData);
     
-    // Trượt đồ thị khi quá 30 điểm
+    // Trượt đồ thị khi quá số điểm tối đa
     if (chart.data.labels.length > maxDataPoints) {
         chart.data.labels.shift(); 
         chart.data.datasets[0].data.shift();
@@ -406,3 +433,16 @@ function loadRelaysFromStorage() {
         relayList = [];
     }
 }
+
+function updateClock() {
+    const clockEl = document.getElementById('clock');
+    if (clockEl) {
+        const now = new Date();
+        const timeString = now.toLocaleTimeString('vi-VN', { hour12: false });
+        const dateString = now.toLocaleDateString('vi-VN');
+        clockEl.innerText = `${timeString} | ${dateString}`;
+    }
+}
+// Chạy ngay khi tải trang và lặp lại mỗi 1 giây
+updateClock();
+setInterval(updateClock, 1000);
