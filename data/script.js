@@ -1,4 +1,6 @@
-
+let minTemp = Infinity, maxTemp = -Infinity;
+let minHumi = Infinity, maxHumi = -Infinity;
+let minGas = Infinity, maxGas = -Infinity;
 // Nếu muốn lấy giá trị hiệu ứng khi gửi dữ liệu:
 // const effect = document.getElementById('customEffect').value;
 // ==================== NEOPIXEL MODE UI ====================
@@ -95,7 +97,7 @@ window.addEventListener('load', onLoad);
 function onLoad(event) {
     loadRelaysFromStorage();
     initWebSocket();
-    initGauges();
+    initCharts();
     loadRelaysFromStorage() 
     renderRelays(); // <-- Đảm bảo hiển thị lại danh sách relay
 }
@@ -131,62 +133,67 @@ function onMessage(event) {
     console.log("Nhận:", event.data);
     try {
         var data = JSON.parse(event.data);
-        // Xử lý cập nhật trạng thái relay từ ESP32
-        if(data.type === "device") { 
-            refreshRelayUI(data.value);
-        }
-        // ================== Cập nhật gauge trạng thái ==================
+        if(data.type === "device") { refreshRelayUI(data.value); }
+        
         if (data.type === "sensor_data") {
-            // Cập nhật gauge trạng thái nếu có trường result
-            if (window.gaugeStatus && typeof data.result !== 'undefined') {
-                let label = "";
-                let color = "#ad4caf";
-                
+            // Cập nhật số liệu và tìm Min/Max
+            if(data.temperature !== undefined) {
+                if(data.temperature < minTemp) minTemp = data.temperature;
+                if(data.temperature > maxTemp) maxTemp = data.temperature;
+                document.getElementById("min_temp").innerText = minTemp;
+                document.getElementById("max_temp").innerText = maxTemp;
+                document.getElementById("rt_temp").innerText = data.temperature + "°C";
+                updateChart(chartTemp, data.temperature);
+            }
+
+            if(data.humidity !== undefined) {
+                if(data.humidity < minHumi) minHumi = data.humidity;
+                if(data.humidity > maxHumi) maxHumi = data.humidity;
+                document.getElementById("min_humi").innerText = minHumi;
+                document.getElementById("max_humi").innerText = maxHumi;
+                document.getElementById("rt_humi").innerText = data.humidity + "%";
+                updateChart(chartHumi, data.humidity);
+            }
+
+            if(data.smokeValue !== undefined) {
+                if(data.smokeValue < minGas) minGas = data.smokeValue;
+                if(data.smokeValue > maxGas) maxGas = data.smokeValue;
+                document.getElementById("min_gas").innerText = minGas;
+                document.getElementById("max_gas").innerText = maxGas;
+                document.getElementById("rt_gas").innerText = data.smokeValue;
+                updateChart(chartGas, data.smokeValue);
+            }
+
+            // Cập nhật số liệu nhỏ trên góc phải đồ thị
+            if(data.temperature !== undefined) document.getElementById("rt_temp").innerText = data.temperature + "°C";
+            if(data.humidity !== undefined) document.getElementById("rt_humi").innerText = data.humidity + "%";
+            if(data.smokeValue !== undefined) document.getElementById("rt_gas").innerText = data.smokeValue;
+
+            // Cập nhật đồ thị chạy ngang
+            if(data.temperature !== undefined) updateChart(chartTemp, data.temperature);
+            if(data.humidity !== undefined) updateChart(chartHumi, data.humidity);
+            if(data.smokeValue !== undefined) updateChart(chartGas, data.smokeValue);
+
+            // Cập nhật thẻ Trạng thái AI
+            if (typeof data.result !== 'undefined') {
+                let badge = document.getElementById("statusBadge");
+                badge.style.background = ""; 
+                badge.style.color = "";
                 if (data.result == 0) { 
-                    label = "NORMAL"; 
-                    color = "#4c8eaf"; 
-                }
-                else if (data.result == 1) { 
-                    label = "GAS LEAK"; 
-                    color = "#07ff3d"; 
-                }
-                else if (data.result == 2) { 
-                    label = "BURN"; 
-                    color = "#F44336"; 
-                }
-                else { 
-                    label = "UNKNOWN"; 
-                    color = "#888"; 
-                }
-                
-                // Cập nhật giá trị gauge
-                window.gaugeStatus.refresh(data.result);
-                
-                // Cập nhật label trạng thái
-                let statusContainer = document.querySelector('#gauge_status .jGauge-title');
-                if (!statusContainer) {
-                    statusContainer = document.createElement('div');
-                    statusContainer.className = 'jGauge-title';
-                    statusContainer.style.textAlign = 'center';
-                    statusContainer.style.fontWeight = 'bold';
-                    statusContainer.style.fontSize = '1.1em';
-                    statusContainer.style.marginTop = '10px';
-                    statusContainer.style.color = color;
-                    document.getElementById('gauge_status').appendChild(statusContainer);
+                    badge.className = "status-badge safe";
+                    badge.innerHTML = `<i class="fa-solid fa-circle-check"></i> <span>NORMAL</span>`;
+                } else if (data.result == 1) { 
+                    badge.className = "status-badge warn";
+                    badge.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> <span>GAS LEAK</span>`;
+                } else if (data.result == 2) { 
+                    badge.className = "status-badge danger";
+                    badge.innerHTML = `<i class="fa-solid fa-fire"></i> <span>BURN</span>`;
                 } else {
-                    statusContainer.style.color = color;
+                    badge.className = "status-badge unknown"; 
+                    badge.style.background = "#e5e7eb";
+                    badge.style.color = "#6b7280";
+                    badge.innerHTML = `<i class="fa-solid fa-circle-question"></i> <span>UNKNOWN</span>`;
                 }
-                statusContainer.innerText = label;
-            }
-            // Cập nhật các gauge còn lại
-            if (window.gaugeTemp && typeof data.temperature !== 'undefined') {
-                window.gaugeTemp.refresh(data.temperature);
-            }
-            if (window.gaugeHumi && typeof data.humidity !== 'undefined') {
-                window.gaugeHumi.refresh(data.humidity);
-            }
-            if (window.gaugeGas && typeof data.smokeValue !== 'undefined') {
-                window.gaugeGas.refresh(data.smokeValue);
             }
         }
     } catch (e) {
@@ -194,6 +201,76 @@ function onMessage(event) {
     }
 }
 
+// ==================== KHỞI TẠO ĐỒ THỊ CHART.JS ====================
+let chartTemp, chartHumi, chartGas;
+const maxDataPoints = 30; // Giữ 30 điểm trên đồ thị
+
+function initCharts() {
+    const commonOptions = {
+        responsive: true, maintainAspectRatio: false, animation: false,
+        plugins: { legend: { display: false }, tooltip: { enabled: false } },
+        elements: { 
+            point: { radius: 0 }, 
+            line: { tension: 0.4, borderWidth: 2.5 } 
+        },
+        layout: { padding: { top: 5, bottom: 0, left: 0, right: 0 } }
+    };
+
+    // Hàm tạo trục Y KHÔNG FIX CỨNG MIN/MAX, để Chart.js tự động co giãn
+    function getYScale() {
+        return {
+            display: true,
+            position: 'left', 
+            border: { display: false }, 
+            grid: { color: '#f3f4f6' }, 
+            ticks: { color: '#9ca3af', font: { family: "'Poppins', sans-serif", size: 10 } },
+            grace: '20%' // Tạo thêm 20% khoảng không gian "thở" ở trên/dưới đỉnh sóng
+        };
+    }
+
+    function createGradient(ctx, colorStart, colorEnd) {
+        let gradient = ctx.createLinearGradient(0, 0, 0, 120); 
+        gradient.addColorStop(0, colorStart); gradient.addColorStop(1, colorEnd);
+        return gradient;
+    }
+
+    // 1. Đồ thị Nhiệt độ
+    let ctxTemp = document.getElementById('chartTemp').getContext('2d');
+    chartTemp = new Chart(ctxTemp, {
+        type: 'line',
+        data: { labels: [], datasets: [{ data: [], borderColor: '#fcd34d', backgroundColor: createGradient(ctxTemp, 'rgba(252, 211, 77, 0.4)', 'rgba(252, 211, 77, 0)'), fill: true }] },
+        options: { ...commonOptions, scales: { x: { display: false }, y: getYScale() } }
+    });
+
+    // 2. Đồ thị Độ ẩm
+    let ctxHumi = document.getElementById('chartHumi').getContext('2d');
+    chartHumi = new Chart(ctxHumi, {
+        type: 'line',
+        data: { labels: [], datasets: [{ data: [], borderColor: '#93c5fd', backgroundColor: createGradient(ctxHumi, 'rgba(147, 197, 253, 0.4)', 'rgba(147, 197, 253, 0)'), fill: true }] },
+        options: { ...commonOptions, scales: { x: { display: false }, y: getYScale() } }
+    });
+
+    // 3. Đồ thị Khí Gas
+    let ctxGas = document.getElementById('chartGas').getContext('2d');
+    chartGas = new Chart(ctxGas, {
+        type: 'line',
+        data: { labels: [], datasets: [{ data: [], borderColor: '#86efac', backgroundColor: createGradient(ctxGas, 'rgba(134, 239, 172, 0.4)', 'rgba(134, 239, 172, 0)'), fill: true }] },
+        options: { ...commonOptions, scales: { x: { display: false }, y: getYScale() } }
+    });
+}
+
+function updateChart(chart, newData) {
+    const timeNow = new Date().toLocaleTimeString();
+    chart.data.labels.push(timeNow);
+    chart.data.datasets[0].data.push(newData);
+    
+    // Trượt đồ thị khi quá 30 điểm
+    if (chart.data.labels.length > maxDataPoints) {
+        chart.data.labels.shift(); 
+        chart.data.datasets[0].data.shift();
+    }
+    chart.update();
+}
 
 // ==================== UI NAVIGATION ====================
 let relayList = [];
@@ -205,65 +282,6 @@ function showSection(id, event) {
     document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
     event.currentTarget.classList.add('active');
 }
-
-
-// ==================== HOME GAUGES ====================
-function initGauges() {
-    // Khởi tạo các đồng hồ đo và lưu vào biến toàn cục (window.)
-    // để các hàm khác có thể truy cập
-    window.gaugeTemp = new JustGage({
-        id: "gauge_temp",
-        value: 0, // Giá trị ban đầu
-        min: -10,
-        max: 50,
-        donut: true,
-        pointer: false,
-        gaugeWidthScale: 0.25,
-        gaugeColor: "transparent",
-        levelColorsGradient: true,
-        levelColors: ["#00BCD4", "#4CAF50", "#FFC107", "#F44336"]
-    });
-
-    window.gaugeHumi = new JustGage({
-        id: "gauge_humi",
-        value: 0, // Giá trị ban đầu
-        min: 0,
-        max: 100,
-        donut: true,
-        pointer: false,
-        gaugeWidthScale: 0.25,
-        gaugeColor: "transparent",
-        levelColorsGradient: true,
-        levelColors: ["#42A5F5", "#00BCD4", "#0288D1"]
-    });
-
-    window.gaugeGas = new JustGage({
-        id: "gauge_gas",
-        value: 0,
-        min: 0,
-        max: 4095, // Hiển thị giá trị analog khí gas
-        donut: true,
-        pointer: false,
-        gaugeWidthScale: 0.25,
-        gaugeColor: "transparent",
-        levelColorsGradient: true,
-        levelColors: ["#07ffea", "#ffea07", "#6eff07"] // Dark, Medium, Bright
-    });
-        // Khởi tạo gauge status
-    window.gaugeStatus = new JustGage({
-        id: "gauge_status",
-        value: 0,
-        min: 0,
-        max: 2,
-        donut: true,
-        pointer: false,
-        gaugeWidthScale: 0.25,
-        gaugeColor: "transparent",
-        hideInnerShadow: true,
-        valueFontColor: "#000"
-    });
-}
-
 
 // ==================== DEVICE FUNCTIONS ====================
 function openAddRelayDialog() {
