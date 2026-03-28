@@ -1,6 +1,50 @@
 let minTemp = Infinity, maxTemp = -Infinity;
 let minHumi = Infinity, maxHumi = -Infinity;
 let minGas = Infinity, maxGas = -Infinity;
+
+// ==================== Sidebar ====================
+const mobileToggle = document.getElementById('mobileToggle');
+const sidebar = document.querySelector('.sidebar');
+let isSidebarOpen = false;
+
+if (mobileToggle) {
+    mobileToggle.addEventListener('click', (e) => {
+        e.stopPropagation(); 
+        isSidebarOpen = !isSidebarOpen;
+        if (isSidebarOpen) {
+            sidebar.classList.add('active');
+            mobileToggle.classList.add('active'); // Thêm class active cho nút
+            mobileToggle.innerHTML = '<i class="fa-solid fa-xmark"></i>';
+        } else {
+            sidebar.classList.remove('active');
+            mobileToggle.classList.remove('active'); // Bỏ class active
+            mobileToggle.innerHTML = '<i class="fa-solid fa-bars"></i>';
+        }
+    });
+}
+
+document.addEventListener('click', (e) => {
+    if (window.innerWidth <= 1024 && isSidebarOpen) {
+        if (!sidebar.contains(e.target) && e.target !== mobileToggle) {
+            sidebar.classList.remove('active');
+            mobileToggle.classList.remove('active'); // Bỏ class active
+            mobileToggle.innerHTML = '<i class="fa-solid fa-bars"></i>';
+            isSidebarOpen = false;
+        }
+    }
+});
+
+document.querySelectorAll('.nav-item').forEach(item => {
+    item.addEventListener('click', () => {
+        if (window.innerWidth <= 1024) {
+            sidebar.classList.remove('active');
+            mobileToggle.classList.remove('active'); // Bỏ class active
+            mobileToggle.innerHTML = '<i class="fa-solid fa-bars"></i>';
+            isSidebarOpen = false;
+        }
+    });
+});
+
 // Nếu muốn lấy giá trị hiệu ứng khi gửi dữ liệu:
 // const effect = document.getElementById('customEffect').value;
 // ==================== NEOPIXEL MODE UI ====================
@@ -142,6 +186,17 @@ function updateConnectionStatus(isOnline) {
         } else {
             badge.classList.add('offline');
             textNode.innerText = 'OFFLINE';
+            const rt_temp = document.getElementById("rt_temp");
+            if(rt_temp) rt_temp.innerText = "--°C";
+            const rt_humi = document.getElementById("rt_humi");
+            if(rt_humi) rt_humi.innerText = "--%";
+            const rt_gas = document.getElementById("rt_gas");
+            if(rt_gas) rt_gas.innerText = "--";
+            const statusBadge = document.getElementById("statusBadge");
+            if (statusBadge) {
+                statusBadge.className = "status-badge unknown";
+                statusBadge.innerHTML = `<i class="fa-solid fa-circle-question"></i> <span>UNKNOWN</span>`;
+            }
         }
     }
 }
@@ -216,9 +271,7 @@ function onMessage(event) {
                     badge.className = "status-badge danger";
                     badge.innerHTML = `<i class="fa-solid fa-fire"></i> <span>BURN</span>`;
                 } else {
-                    badge.className = "status-badge unknown"; 
-                    badge.style.background = "#e5e7eb";
-                    badge.style.color = "#6b7280";
+                    badge.className = "status-badge unknown";
                     badge.innerHTML = `<i class="fa-solid fa-circle-question"></i> <span>UNKNOWN</span>`;
                 }
             }
@@ -230,7 +283,7 @@ function onMessage(event) {
 
 // ==================== KHỞI TẠO ĐỒ THỊ CHART.JS ====================
 let chartTemp, chartHumi, chartGas;
-const maxDataPoints = 50; // Giữ 50 điểm trên đồ thị
+const maxDataPoints = 30; // Giữ 30 điểm trên đồ thị
 
 function initCharts() {
     const commonOptions = {
@@ -243,7 +296,6 @@ function initCharts() {
         layout: { padding: { top: 5, bottom: 0, left: 0, right: 0 } }
     };
 
-    // Hàm tạo trục Y KHÔNG FIX CỨNG MIN/MAX, để Chart.js tự động co giãn
     function getYScale() {
         return {
             display: true,
@@ -251,7 +303,7 @@ function initCharts() {
             border: { display: false }, 
             grid: { color: '#f3f4f6' }, 
             ticks: { color: '#9ca3af', font: { family: "'Poppins', sans-serif", size: 10 } },
-            grace: '20%' // Tạo thêm 20% khoảng không gian "thở" ở trên/dưới đỉnh sóng
+            grace: '20%'
         };
     }
 
@@ -290,8 +342,7 @@ function updateChart(chart, newData) {
     const timeNow = new Date().toLocaleTimeString();
     chart.data.labels.push(timeNow);
     chart.data.datasets[0].data.push(newData);
-    
-    // Trượt đồ thị khi quá số điểm tối đa
+
     if (chart.data.labels.length > maxDataPoints) {
         chart.data.labels.shift(); 
         chart.data.datasets[0].data.shift();
@@ -443,6 +494,6 @@ function updateClock() {
         clockEl.innerText = `${timeString} | ${dateString}`;
     }
 }
-// Chạy ngay khi tải trang và lặp lại mỗi 1 giây
+
 updateClock();
 setInterval(updateClock, 1000);

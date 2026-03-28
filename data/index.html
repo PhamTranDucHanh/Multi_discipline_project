@@ -18,6 +18,10 @@
 <body>
 
   <!-- Thanh bên -->
+  <button id="mobileToggle" class="mobile-toggle">
+  <i class="fa-solid fa-bars"></i>
+  </button>
+
   <div class="sidebar">
     <div class="logo-container">
       <img class="logo-img"
@@ -106,7 +110,7 @@
       <div class="dashboard-charts">
         <div class="chart-card">
           <div class="chart-title">
-            <span>Nhiệt độ theo thời gian thực</span>
+            <span>Nhiệt độ thời gian thực</span>
             <span class="chart-current-val" id="rt_temp">--°C</span>
           </div>
           <div class="chart-wrapper"><canvas id="chartTemp"></canvas></div>
@@ -114,7 +118,7 @@
 
         <div class="chart-card">
           <div class="chart-title">
-            <span>Độ ẩm theo thời gian thực</span>
+            <span>Độ ẩm thời gian thực</span>
             <span class="chart-current-val" id="rt_humi">--%</span>
           </div>
           <div class="chart-wrapper"><canvas id="chartHumi"></canvas></div>
@@ -122,7 +126,7 @@
 
         <div class="chart-card">
           <div class="chart-title">
-            <span>Nồng độ khí độc theo thời gian thực (Analog)</span>
+            <span>Nồng độ khí độc thời gian thực (Analog)</span>
             <span class="chart-current-val" id="rt_gas">--</span>
           </div>
           <div class="chart-wrapper"><canvas id="chartGas"></canvas></div>
