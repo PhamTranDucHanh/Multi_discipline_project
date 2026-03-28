@@ -210,6 +210,12 @@ function resetConnectionTimer() {
     }, 3000); 
 }
 
+// [FIX] Hàm hỗ trợ làm tròn 2 chữ số thập phân cho temp/humi
+function round2(value) {
+    const n = Number(value);
+    return Number.isFinite(n) ? Number(n.toFixed(2)) : value;
+}
+
 function onMessage(event) {
     console.log("Nhận:", event.data);
     try {
@@ -220,21 +226,29 @@ function onMessage(event) {
         if (data.type === "sensor_data") {
             // Cập nhật số liệu và tìm Min/Max
             if(data.temperature !== undefined) {
-                if(data.temperature < minTemp) minTemp = data.temperature;
-                if(data.temperature > maxTemp) maxTemp = data.temperature;
-                document.getElementById("min_temp").innerText = minTemp;
-                document.getElementById("max_temp").innerText = maxTemp;
-                document.getElementById("rt_temp").innerText = data.temperature + "°C";
-                updateChart(chartTemp, data.temperature);
+                const tempVal = round2(data.temperature);
+                if(tempVal < minTemp) minTemp = tempVal;
+                if(tempVal > maxTemp) maxTemp = tempVal;
+
+                document.getElementById("min_temp").innerText = Number(minTemp).toFixed(2);
+                document.getElementById("max_temp").innerText = Number(maxTemp).toFixed(2);
+                document.getElementById("rt_temp").innerText = tempVal.toFixed(2) + "°C";
+                updateChart(chartTemp, tempVal);
             }
 
             if(data.humidity !== undefined) {
-                if(data.humidity < minHumi) minHumi = data.humidity;
-                if(data.humidity > maxHumi) maxHumi = data.humidity;
-                document.getElementById("min_humi").innerText = minHumi;
-                document.getElementById("max_humi").innerText = maxHumi;
-                document.getElementById("rt_humi").innerText = data.humidity + "%";
-                updateChart(chartHumi, data.humidity);
+                // [FIX] làm tròn humi 2 số thập phân
+                const humiVal = round2(data.humidity);
+
+                if(humiVal < minHumi) minHumi = humiVal;
+                if(humiVal > maxHumi) maxHumi = humiVal;
+
+                // [FIX] hiển thị humi/min/max với đúng 2 số thập phân
+                document.getElementById("min_humi").innerText = Number(minHumi).toFixed(2);
+                document.getElementById("max_humi").innerText = Number(maxHumi).toFixed(2);
+                document.getElementById("rt_humi").innerText = humiVal.toFixed(2) + "%";
+
+                updateChart(chartHumi, humiVal);
             }
 
             if(data.smokeValue !== undefined) {
@@ -247,13 +261,15 @@ function onMessage(event) {
             }
 
             // Cập nhật số liệu nhỏ trên góc phải đồ thị
-            if(data.temperature !== undefined) document.getElementById("rt_temp").innerText = data.temperature + "°C";
-            if(data.humidity !== undefined) document.getElementById("rt_humi").innerText = data.humidity + "%";
+            // [FIX] temp/humi hiển thị 2 số thập phân
+            if(data.temperature !== undefined) document.getElementById("rt_temp").innerText = round2(data.temperature).toFixed(2) + "°C";
+            if(data.humidity !== undefined) document.getElementById("rt_humi").innerText = round2(data.humidity).toFixed(2) + "%";
             if(data.smokeValue !== undefined) document.getElementById("rt_gas").innerText = data.smokeValue;
 
             // Cập nhật đồ thị chạy ngang
-            if(data.temperature !== undefined) updateChart(chartTemp, data.temperature);
-            if(data.humidity !== undefined) updateChart(chartHumi, data.humidity);
+            // [FIX] chart temp/humi dùng giá trị đã làm tròn 2 số thập phân
+            if(data.temperature !== undefined) updateChart(chartTemp, round2(data.temperature));
+            if(data.humidity !== undefined) updateChart(chartHumi, round2(data.humidity));
             if(data.smokeValue !== undefined) updateChart(chartGas, data.smokeValue);
 
             // Cập nhật thẻ Trạng thái AI
