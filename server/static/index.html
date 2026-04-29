@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ESP32 Environment Monitor</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app">
+
+    <!-- ── Header ─────────────────────────────────────────────────────── -->
+    <header class="header">
+      <div class="header-left">
+        <span class="logo-icon">🌡️</span>
+        <div>
+          <h1>ESP32 Environment Monitor</h1>
+          <p class="subtitle">Hệ thống giám sát môi trường thời gian thực</p>
+        </div>
+      </div>
+      <div class="header-right">
+        <div class="conn-badge" id="connBadge">
+          <span class="conn-dot" id="connDot"></span>
+          <span id="connText">Đang kết nối…</span>
+        </div>
+        <div class="last-update">Cập nhật: <span id="lastUpdate">--:--:--</span></div>
+      </div>
+    </header>
+
+    <!-- ── Alert Banner ───────────────────────────────────────────────── -->
+    <div class="alert-banner hidden" id="alertBanner">
+      <span class="alert-icon" id="alertIcon">⚠️</span>
+      <strong id="alertTitle">CẢNH BÁO</strong>
+      <span id="alertText">Phát hiện bất thường!</span>
+    </div>
+
+    <!-- ── Gauge Cards ────────────────────────────────────────────────── -->
+    <section class="cards-grid">
+
+      <!-- Temperature -->
+      <div class="card gauge-card">
+        <div class="card-header">
+          <span class="card-icon">🌡️</span>
+          <h3>Nhiệt độ</h3>
+        </div>
+        <svg class="gauge-svg" viewBox="0 0 120 120">
+          <circle class="gauge-track" cx="60" cy="60" r="48" />
+          <circle class="gauge-fill temp-color" id="gTempFill" cx="60" cy="60" r="48" />
+          <text class="gauge-val" x="60" y="57" text-anchor="middle" id="gTempVal">--</text>
+          <text class="gauge-unit" x="60" y="74" text-anchor="middle">°C</text>
+        </svg>
+        <div class="card-stats">
+          <div class="stat">↓ <span id="tMin">--</span></div>
+          <div class="stat avg">⌀ <span id="tAvg">--</span></div>
+          <div class="stat">↑ <span id="tMax">--</span></div>
+        </div>
+      </div>
+
+      <!-- Humidity -->
+      <div class="card gauge-card">
+        <div class="card-header">
+          <span class="card-icon">💧</span>
+          <h3>Độ ẩm</h3>
+        </div>
+        <svg class="gauge-svg" viewBox="0 0 120 120">
+          <circle class="gauge-track" cx="60" cy="60" r="48" />
+          <circle class="gauge-fill humi-color" id="gHumiFill" cx="60" cy="60" r="48" />
+          <text class="gauge-val" x="60" y="57" text-anchor="middle" id="gHumiVal">--</text>
+          <text class="gauge-unit" x="60" y="74" text-anchor="middle">%</text>
+        </svg>
+        <div class="card-stats">
+          <div class="stat">↓ <span id="hMin">--</span></div>
+          <div class="stat avg">⌀ <span id="hAvg">--</span></div>
+          <div class="stat">↑ <span id="hMax">--</span></div>
+        </div>
+      </div>
+
+      <!-- Smoke / Gas -->
+      <div class="card gauge-card">
+        <div class="card-header">
+          <span class="card-icon">💨</span>
+          <h3>Khí / Khói</h3>
+        </div>
+        <svg class="gauge-svg" viewBox="0 0 120 120">
+          <circle class="gauge-track" cx="60" cy="60" r="48" />
+          <circle class="gauge-fill" id="gSmokeFill" cx="60" cy="60" r="48" />
+          <text class="gauge-val" x="60" y="57" text-anchor="middle" id="gSmokeVal">--</text>
+          <text class="gauge-unit" x="60" y="74" text-anchor="middle">/ 4095</text>
+        </svg>
+        <div class="card-stats">
+          <div class="stat">↓ <span id="sMin">--</span></div>
+          <div class="stat avg">⌀ <span id="sAvg">--</span></div>
+          <div class="stat">↑ <span id="sMax">--</span></div>
+        </div>
+      </div>
+
+      <!-- Status -->
+      <div class="card status-card">
+        <div class="card-header">
+          <span class="card-icon">🛡️</span>
+          <h3>Trạng thái</h3>
+        </div>
+        <div class="status-wrap">
+          <div class="status-badge" id="statusBadge">
+            <span class="status-icon" id="statusIcon">❓</span>
+            <span class="status-label" id="statusLabel">--</span>
+          </div>
+        </div>
+        <div class="status-meta">
+          <div>Model dự đoán: <strong id="resultCode">--</strong></div>
+          <div id="totalReadings">Tổng: 0 bản ghi</div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ── Charts ─────────────────────────────────────────────────────── -->
+    <section class="charts-grid">
+      <div class="chart-card">
+        <h3 class="chart-title">Nhiệt độ &amp; Độ ẩm <span class="chart-hint">(60 điểm gần nhất)</span></h3>
+        <canvas id="chartTH"></canvas>
+      </div>
+      <div class="chart-card">
+        <h3 class="chart-title">Giá trị khí ADC <span class="chart-hint">(60 điểm gần nhất)</span></h3>
+        <canvas id="chartSmoke"></canvas>
+      </div>
+    </section>
+
+    <!-- ── Recent Table ───────────────────────────────────────────────── -->
+    <section class="table-section">
+      <h3 class="section-title">10 bản ghi gần nhất</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Thời gian</th>
+              <th>Nhiệt độ (°C)</th>
+              <th>Độ ẩm (%)</th>
+              <th>Khí (ADC)</th>
+              <th>Trạng thái</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ── Footer ─────────────────────────────────────────────────────── -->
+    <footer class="footer">
+      <span>ESP32 Environment Monitor • Real-time IoT Dashboard</span>
+    </footer>
+
+  </div>
+  <script src="script.js"></script>
+</body>
+</html>
