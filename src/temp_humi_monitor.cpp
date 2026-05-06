@@ -19,10 +19,13 @@ void temp_humi_monitor(void *pvParameters){
     u8g2.begin();
     lcd.begin();
     lcd.backlight();
-    
+
+    // Bộ lọc trạng thái: 3 biến tạm lưu 3 kết quả gần nhất
+    static int result_buf[3] = {0, 0, 0};
+    static int stable_status = 0; // Trạng thái đã ổn định
+
     while (1){
-        /* code */
-        
+
         dht20.read();
         // Reading temperature in Celsius
         float temperature = dht20.getTemperature();
@@ -50,11 +53,20 @@ void temp_humi_monitor(void *pvParameters){
         temp_prev = temperature;
         gas_prev = smokeValue;
 
+        // Dịch chuyển bộ đệm và thêm kết quả mới
+        result_buf[0] = result_buf[1];
+        result_buf[1] = result_buf[2];
+        result_buf[2] = result;
+
+        // Kiểm tra nếu cả 3 lần liên tiếp giống nhau thì cập nhật status
+        if (result_buf[0] == result_buf[1] && result_buf[1] == result_buf[2]) {
+            stable_status = result_buf[2];
+        }
         // Đóng gói dữ liệu vào struct và gửi vào queue
         sensorData.temperature = temperature;
         sensorData.humidity = humidity;
         sensorData.smoke = smokeValue;
-        sensorData.status = result; // 0: normal, 1: leak, 2: fire
+        sensorData.status = stable_status; // 0: normal, 1: leak, 2: fire
         if (xQueueSend(xQueueSensorDataNeoPixel, &sensorData, 0) != pdPASS) {
 #ifdef PRINT_QUEUE_STATUS
             Serial.println("Queue Sensor Data NeoPixel full");
@@ -65,7 +77,7 @@ void temp_humi_monitor(void *pvParameters){
             Serial.println("Queue Sensor Data CoreIOT full");
 #endif
         }
-        
+
         if (sensorData.status == 1) { // Gas Leak
             xSemaphoreGive(xBinarySemaphoreMsgGas);
         }
@@ -99,22 +111,22 @@ void temp_humi_monitor(void *pvParameters){
         draw();
         u8g2.sendBuffer();					// transfer internal memory to the display
         // vTaskDelay(1000);
-        
+
         // ==================================================
         StaticJsonDocument<128> doc;
         doc["type"] = "sensor_data";
         doc["temperature"] = temperature;
         doc["humidity"] = humidity;
         doc["smokeValue"] = smokeValue;  // Gửi giá trị analog (0-4095)
-        doc["result"] = result; // 0: normal, 1: leak, 2: fire
+        doc["result"] = stable_status; // 0: normal, 1: leak, 2: fire
 
         String jsonString;
         serializeJson(doc, jsonString);
-        
+
         Webserver_sendata(jsonString);
         // ==================================================
         vTaskDelay(1000 / portTICK_PERIOD_MS); // Đọc mỗi 1 giây
-        
+
     }
 }
 void draw() {
