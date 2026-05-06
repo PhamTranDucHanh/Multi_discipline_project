@@ -1,10 +1,6 @@
 @echo off
 setlocal enabledelayedexpansion
 
-echo =====================================
-echo   ESP32 Sensor Monitor Server
-echo =====================================
-echo.
 
 REM Install dependencies
 echo [*] Installing dependencies...

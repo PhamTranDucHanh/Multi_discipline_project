@@ -103,26 +103,26 @@ class ESP32Client:
         """Kết nối WebSocket tới ESP32 và lắng nghe dữ liệu"""
         while True:
             try:
-                print(f"[ESP32 Client] Đang kết nối tới {self.uri}...")
+                print(f"[ESP32 Client] Connecting to {self.uri}...")
                 async with websockets.connect(self.uri, ping_interval=10, ping_timeout=10) as ws:
                     self.connected = True
-                    print(f"[ESP32 Client] ✓ Kết nối thành công!")
+                    print(f"[ESP32 Client] ✓ Connected successfully!")
                     
                     while True:
                         try:
                             message = await ws.recv()
                             await self.handle_message(message)
                         except websockets.exceptions.ConnectionClosed:
-                            print("[ESP32 Client] Kết nối ESP32 đóng")
+                            print("[ESP32 Client] ESP32 connection closed")
                             break
                         except Exception as e:
-                            print(f"[ESP32 Client] Lỗi nhận dữ liệu: {e}")
+                            print(f"[ESP32 Client] Error receiving data: {e}")
                             break
                             
             except Exception as e:
-                print(f"[ESP32 Client] Kết nối thất bại: {e}")
+                print(f"[ESP32 Client] Connection failed: {e}")
                 self.connected = False
-                print("[ESP32 Client] Thử kết nối lại trong 5 giây...")
+                print("[ESP32 Client] Retrying connection in 5 seconds...")
                 await asyncio.sleep(5)
 
     async def handle_message(self, message: str):
@@ -153,9 +153,9 @@ class ESP32Client:
                 await manager.broadcast(json.dumps(broadcast_data))
                 
         except json.JSONDecodeError:
-            print(f"[ESP32 Client] JSON không hợp lệ: {message}")
+            print(f"[ESP32 Client] Invalid JSON format: {message}")
         except Exception as e:
-            print(f"[ESP32 Client] Lỗi xử lý: {e}")
+            print(f"[ESP32 Client] Processing error: {e}")
 
     async def save_to_db(self, temperature, humidity, smoke_value, result):
         """Ghi dữ liệu vào SQLite"""
@@ -166,9 +166,9 @@ class ESP32Client:
                     (temperature, humidity, smoke_value, result),
                 )
                 conn.commit()
-            print(f"[DB] ✓ Lưu: T={temperature}, H={humidity}, Gas={smoke_value}, Status={result}")
+            print(f"[DB] ✓ Saved: T={temperature}, H={humidity}, Gas={smoke_value}, Status={result}")
         except Exception as e:
-            print(f"[DB] ✗ Lỗi lưu: {e}")
+            print(f"[DB] ✗ Failed: {e}")
 
 
 # Global ESP32 client instance
@@ -185,7 +185,7 @@ async def startup():
     global esp32_client
     
     init_db()
-    print("[*] Database khởi tạo xong")
+    print("[*] Database initialized successfully")
     
     # Đọc IP ESP32 từ file config hoặc env (tuỳ chọn)
     # Tạm thời hardcode, sau có thể đọc từ file
@@ -193,7 +193,7 @@ async def startup():
     
     esp32_client = ESP32Client(ESP32_IP, 80)
     asyncio.create_task(esp32_client.connect_and_listen())
-    print(f"[*] ESP32 Client đang chạy (IP: {ESP32_IP})")
+    print(f"[*] ESP32 Client running (IP: {ESP32_IP})")
 
 
 # ────────────────────────────────────────────────────────────────────────────
