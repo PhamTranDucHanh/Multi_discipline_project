@@ -1,2 +1,4 @@
 .pio
 .vscode
+server/__pycache__/
+server/sensor_data.db
